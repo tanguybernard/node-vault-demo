@@ -31,25 +31,29 @@ Minikube exécute un cluster Kubernetes à nœud unique dans une machine virtuel
 
     minikube start
 
-### 2. Helm
+### 2. Helm Vault
     git clone https://github.com/hashicorp/vault-helm.git
     cd vault-helm
     git checkout v0.16.0 # checkout stable version
     helm lint # check chart(s)
-    helm install vault --set='server.dev.enabled=true' # dev mode pour la démo, NOT FOR PRODUCTION
+    // dev mode pour la démo, NOT FOR PRODUCTION
+    helm install vault-app vault-helm/ --set='server.dev.enabled=true' 
+
 
     kubectl get po
-    kubectl exec -it vault-0 -- vault status
+    kubectl exec -it vault-app-0 -- vault status
 
 Port forward
 
-    kubectl port-forward vault-0 8200:8200
+    kubectl port-forward vault-app-0 8200:8200
 
-    kubectl exec -it vault-0 /bin/sh
+    k port-forward node-express-api-node-helm-5b66d7db87-zptbc 3000:3000
+
+
+
+    kubectl exec -it vault-app-0 /bin/sh
 
     vault secrets enable -path=internal kv-v2
-
-
     vault kv put internal/database/config username="db-readonly-username" password="db-secret-password"
 
 ### 4. Enable Kubernetes Authentication
@@ -81,7 +85,7 @@ The role connects the Kubernetes service account, internal-app, and namespace, d
     vault write auth/kubernetes/role/internal-app bound_service_account_names=internal-app bound_service_account_namespaces=default policies=internal-app ttl=24h
 
 
-Create Service account
+##7. Create Service account
 
     kubectl create sa internal-app
 
@@ -93,13 +97,18 @@ Create Service account
 
 
 
-## NodeJS App
+## 8. NodeJS App
 
-Connected the local docker daemon with Minikube
+### Build image
 
     eval $(minikube docker-env)
 
-    docker build -t tanguybernard/node-express-api .
+    #optional
+    helm del node-express-api
+
+    docker build -t tanguybernard/node-express-api . --no-cache
+
+### Connected the local docker daemon with Minikube
 
     docker run -p 4000:3000 node-express-api-test #localhost:4000 -> node-api:3000
 
@@ -107,12 +116,13 @@ Connected the local docker daemon with Minikube
 
     docker stop <container-id>
 
-
     helm create node-helm # create chart
+
+### Helm
 
 Install App with helm
 
-    helm install node-express-api node-helm/
+    helm install node-express-api node-helm/ --set vaultService.host=http://vault-app:8200
 
 Update App with helm
 
@@ -154,3 +164,7 @@ https://medium.com/@cloudegl/run-node-js-app-using-kubernetes-helm-bb87747785a
 https://www.freshbrewed.science/vault-on-kubernetes-part-2-multiple-k8s-templates-and-external-ips/index.html
 
 https://medium.com/the-programmer/working-with-service-account-in-kubernetes-df129cb4d1cc
+
+Deploy with helm
+
+https://www.ibm.com/cloud/blog/quick-example-helm-chart-for-kubernetes

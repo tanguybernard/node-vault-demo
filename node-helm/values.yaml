@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: tanguybernard/node-express-api-3
+  repository: tanguybernard/node-express-api
   pullPolicy: Never
   # Overrides the image tag whose default is the chart appVersion.
   tag: latest
@@ -37,8 +37,10 @@ securityContext: {}
   # runAsUser: 1000
 
 service:
-  type: ClusterIP
-  port: 3000
+  type: NodePort
+  protocol: TCP
+  internalPort: 3000
+  externalPort: 3000
 
 ingress:
   enabled: false
@@ -55,6 +57,10 @@ ingress:
   #  - secretName: chart-example-tls
   #    hosts:
   #      - chart-example.local
+
+
+vaultService:
+  host: vault-abcd
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
