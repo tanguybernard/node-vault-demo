@@ -1,17 +1,21 @@
-console.log('VAULT URI',process.env.VAULT_URI);
+console.log('VAULT_URI',process.env.VAULT_URI);
 
 const vault = require("node-vault")({
     apiVersion: "v1",
     endpoint: process.env.VAULT_URI,
 });
 
-const appName = 'internal-app';
+const appName = 'node-express-api-node-helm';
 
-//const appServiceAccountSecretToken = process.env.APP_SVC_ACCT_SECRET_TOKEN || 'app-k8s-token';
-const appServiceAccountSecretToken = 'YOUR_TOKEN_HERE';
+const fs = require('fs');
 
+const token = fs.readFileSync('/var/run/secrets/kubernetes.io/serviceaccount/token', 'utf-8');
 
-vault.kubernetesLogin({role: appName, jwt: appServiceAccountSecretToken})
+console.log(token);
+vault.kubernetesLogin({
+    role: appName,
+    jwt: token
+})
     .then(data => {
         console.log('data:', data);
         console.log('token:', data.auth.client_token);
@@ -35,7 +39,7 @@ app.get('/', (req, res) => {
 app.get('/secrets', async (req, res) => {
 
     async function fetchData(){
-        let login = await vault.kubernetesLogin({role: appName, jwt: appServiceAccountSecretToken});
+        let login = await vault.kubernetesLogin({role: appName, jwt: token});
         let secrets = await vault.read(
             'internal/data/database/config',
             {token: login.auth.client_token})

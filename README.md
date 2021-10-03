@@ -49,8 +49,6 @@ Port forward
 
     k port-forward node-express-api-node-helm-5b66d7db87-zptbc 3000:3000
 
-
-
     kubectl exec -it vault-app-0 /bin/sh
 
     vault secrets enable -path=internal kv-v2
@@ -60,40 +58,36 @@ Port forward
 
     vault auth enable kubernetes
 
-    vault write auth/kubernetes/config \
-        token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-        kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" \
-        kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
 
+    vault write auth/kubernetes/config issuer="https://kubernetes.default.svc.cluster.local" token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+
+Issue with ISS JWT TOKEN (You can disable iss validation, ONLY FOR TEST, not production...)
+
+    vault write auth/kubernetes/config .... disable_iss_validation=true
 
 https://learn.hashicorp.com/tutorials/vault/kubernetes-sidecar
 
 ### 5. Configure 
 
 
-Create a Kubernetes authentication role named internal-app:
+Create a Kubernetes authentication role for nodeJs application:
 
 
-    vault policy write internal-app - <<EOH
+    vault policy write node-express-api-node-helm - <<EOH
     path "internal/data/database/config" {
     capabilities = ["read"]
     }
     EOH
 
-The role connects the Kubernetes service account, internal-app, and namespace, default, with the Vault policy, internal-app. The tokens returned after authentication are valid for 24 hours.
-
-    vault write auth/kubernetes/role/internal-app bound_service_account_names=internal-app bound_service_account_namespaces=default policies=internal-app ttl=24h
 
 
-##7. Create Service account
 
-    kubectl create sa internal-app
+The role connects the Kubernetes service account with the Vault policy.
+The tokens returned after authentication are valid for 24 hours.
 
-    kubectl get sa
-
-    kubectl get secret
-
-    kubectl describe secret <token-name>
+    vault auth enable kubernetes
+    vault write auth/kubernetes/role/node-express-api-node-helm bound_service_account_names=node-express-api-node-helm bound_service_account_namespaces=default policies=node-express-api-node-helm ttl=24h
 
 
 
@@ -118,7 +112,7 @@ The role connects the Kubernetes service account, internal-app, and namespace, d
 
     helm create node-helm # create chart
 
-### Helm
+## Helm Command
 
 Install App with helm
 
@@ -132,6 +126,7 @@ Delete App With Helm
 
     helm del node-express-api
 
+## Minikube command
 
 Get minkube service
 
@@ -145,7 +140,17 @@ Resetting and restarting your cluster
 
     minikube delete
 
-https://medium.com/@cloudegl/run-node-js-app-using-kubernetes-helm-bb87747785a
+## Kubectl command
+
+### Create Service account
+
+    kubectl create sa my-super-application
+
+    kubectl get sa
+
+    kubectl get secret
+
+    kubectl describe secret <token-name>
 
 ## Credits
 
