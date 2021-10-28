@@ -9,6 +9,10 @@ Un cluster Kubernetes est un ensemble de machines (les nœuds) qui permettent d'
 
 source : https://www.redhat.com/fr/topics/containers/what-is-a-kubernetes-cluster
 
+### Helm
+
+Le rôle principal de Helm est de permettre de définir, d’installer et de mettre à jour des applications Kubernetes complexes.
+
 ### Service account
 
 Un ServiceAccount (compte de service) fournit une identité pour les processus qui s'exécutent dans un Pod.
