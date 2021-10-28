@@ -1,21 +1,5 @@
 #
 
-## Definition
-
-### Cluster Kubernetes
-
-Un cluster Kubernetes est un ensemble de machines (les nœuds) qui permettent d'exécuter des applications conteneurisées. Si vous exécutez Kubernetes, vous exécutez un cluster.
-
-source : https://www.redhat.com/fr/topics/containers/what-is-a-kubernetes-cluster
-
-### Kubectl
-
-L'outil en ligne de commande de kubernetes, kubectl, vous permet d'exécuter des commandes dans les clusters Kubernetes.
-
-### Minikube
-
-Minikube exécute un cluster Kubernetes à nœud unique dans une machine virtuelle (VM) en local.
-
 ## info
 
 ### Login available
@@ -32,11 +16,17 @@ Minikube exécute un cluster Kubernetes à nœud unique dans une machine virtuel
     minikube start
 
 ### 2. Helm Vault
+
+Clone (Optional)
+
     git clone https://github.com/hashicorp/vault-helm.git
     cd vault-helm
     git checkout v0.16.0 # checkout stable version
     helm lint # check chart(s)
     // dev mode pour la démo, NOT FOR PRODUCTION
+
+Install Vault with helm
+    
     helm install vault-app vault-helm/ --set='server.dev.enabled=true' 
 
 
@@ -49,6 +39,8 @@ Port forward
 
     k port-forward node-express-api-node-helm-5b66d7db87-zptbc 3000:3000
 
+### 3. Enable kv secret and write
+
     kubectl exec -it vault-app-0 /bin/sh
 
     vault secrets enable -path=internal kv-v2
@@ -58,8 +50,7 @@ Port forward
 
     vault auth enable kubernetes
 
-
-    vault write auth/kubernetes/config issuer="https://kubernetes.default.svc.cluster.local" token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    vault write auth/kubernetes/config issuer="https://kubernetes.default.svc.cluster.local" token_reviewer_jwt="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" kubernetes_host="https://$KUBERNETES_PORT_443_TCP_ADDR:443" kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt disable_iss_validation=true
 
 
 Issue with ISS JWT TOKEN (You can disable iss validation, ONLY FOR TEST, not production...)
@@ -102,7 +93,7 @@ The tokens returned after authentication are valid for 24 hours.
 
     docker build -t tanguybernard/node-express-api . --no-cache
 
-### Connected the local docker daemon with Minikube
+### Connected the local docker daemon with Minikube (Optional)
 
     docker run -p 4000:3000 node-express-api-test #localhost:4000 -> node-api:3000
 
@@ -110,7 +101,7 @@ The tokens returned after authentication are valid for 24 hours.
 
     docker stop <container-id>
 
-    helm create node-helm # create chart
+    helm create node-helm # create chart (optional)
 
 ## Helm Command
 
